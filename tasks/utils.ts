@@ -14,7 +14,7 @@ export default async function confirm(message : string) : Promise<boolean>
         if (error.isTtyError) {
             console.log('Prompt is not available in this environment')
         } else {
-            console.log('Unable to ask about reconsiliation')
+            console.log('Unable to ask about reconciliation')
         }
     }
     return false;
@@ -79,9 +79,16 @@ export function remotesSynced(localRemotes : Origin[], registryRemotes : Origin[
         }
     });
 
+    const registryRemoteExtraNames = registryRemoteNames.filter(r => !localRemoteNames.includes(r));
+    const localRemoteExtraNames = localRemoteNames.filter(r => !registryRemoteNames.includes(r));
+
     if (!synced) {
-        console.log(`Registry has : ${registryRemoteNames.join(',')}`);
-        console.log(`Local has    : ${localRemoteNames.join(',')}`);
+        if (registryRemoteExtraNames.length > 0) {
+            console.log(`Registry has : ${registryRemoteExtraNames.join(',')}`);
+        }
+        if (localRemoteExtraNames.length > 0) {
+            console.log(`Local has    : ${localRemoteExtraNames.join(',')}`);
+        }
     }
 
     return synced;

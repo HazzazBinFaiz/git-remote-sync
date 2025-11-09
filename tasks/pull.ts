@@ -46,13 +46,13 @@ export function pull(remote: string, dataLayer: IDataLayer, forceOverride = fals
                     if (!forceOverride) {
                         console.log(`Registry : ${registryRemote.refs.push}`)
                         console.log(`Local    : ${existingRemote.refs.push}`)
-                        forceOverride = confirm(`Do you want to overrite local remote : ${existingRemote.name} ?`);
+                        forceOverride = confirm(`Do you want to override local remote : ${existingRemote.name} ?`);
                     }
                     
                     if (forceOverride) {
                         await git.removeRemote(existingRemote.name);
                         await git.addRemote(registryRemote.name, registryRemote.refs.push);
-                        console.log(`Remote ${existingRemote.name} overriden and up-to-date with registry`);
+                        console.log(`Remote ${existingRemote.name} overridden and up-to-date with registry`);
                         updated = true;
                     } else {
                         console.log(`Skipping update remote ${existingRemote.name}`);

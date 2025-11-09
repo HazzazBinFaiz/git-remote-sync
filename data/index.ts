@@ -1,3 +1,7 @@
+// const FilePath = process.cwd()+'/remotes.json';
+const FilePath = '/tmp/remotes.json';
+
+
 export type Origin = {
     name: string,
     refs: {
@@ -10,8 +14,8 @@ export interface IDataLayer {
     login(email: string, password: string): boolean;
     isLoggedIn(): boolean;
     logout(): boolean;
-    getRemoteByOrigin(remoteidentifier: string) : Promise<Origin[]>
-    setRemotesByOrigin(remoteidentifier: string, origins : Origin[]): Promise<boolean>
+    getRemoteByOrigin(remoteIdentifier: string) : Promise<Origin[]>
+    setRemotesByOrigin(remoteIdentifier: string, origins : Origin[]): Promise<boolean>
 }
 
 export function createDataLayer() : IDataLayer
@@ -22,7 +26,7 @@ export function createDataLayer() : IDataLayer
 export class DataLayer implements IDataLayer {
     remotes: any;
     constructor(){
-        const file = Bun.file(process.cwd()+'/remotes.json');
+        const file = Bun.file(FilePath);
         file.json().then(result => {
             this.remotes = result;
         }).catch(e => {
@@ -38,16 +42,16 @@ export class DataLayer implements IDataLayer {
     logout(): boolean {
         throw new Error("Method not implemented.");
     }
-    async getRemoteByOrigin(remoteidentifier: string): Promise<Origin[]> {
-        const remotes = this.remotes[remoteidentifier];
+    async getRemoteByOrigin(remoteIdentifier: string): Promise<Origin[]> {
+        const remotes = this.remotes[remoteIdentifier];
         if (remotes == undefined) {
             return [];
         }
-        return this.remotes[remoteidentifier];
+        return this.remotes[remoteIdentifier];
     }
-    async setRemotesByOrigin(remoteidentifier: string, remotes: Origin[]): Promise<boolean> {
-        this.remotes[remoteidentifier] = remotes;
-        await Bun.write(process.cwd()+'/remotes.json', JSON.stringify(this.remotes));
+    async setRemotesByOrigin(remoteIdentifier: string, remotes: Origin[]): Promise<boolean> {
+        this.remotes[remoteIdentifier] = remotes;
+        await Bun.write(FilePath, JSON.stringify(this.remotes));
         return true;
     }
 }

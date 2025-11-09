@@ -40,7 +40,7 @@ export function push(remote: string, dataLayer: IDataLayer, forceOverride = fals
                     if (!forceOverride) {
                         console.log(`Registry : ${existingRemote.refs.push}`)
                         console.log(`Local    : ${localRemote.refs.push}`)
-                        forceOverride = confirm(`Do you want to overrite sserver remote : ${existingRemote.name} ?`);
+                        forceOverride = confirm(`Do you want to override server remote : ${existingRemote.name} ?`);
                     }
                     
                     if (forceOverride) {

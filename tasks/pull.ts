@@ -1,72 +1,76 @@
 import simpleGit from "simple-git";
-import { getRemotesByOrigin } from "../data";
+import { type IDataLayer, type Origin } from "../data";
+import { getRemoteIdentifier, remotesSynced } from "./utils";
 
-export function pull(remote: string) {
+export function pull(remote: string, dataLayer: IDataLayer, forceOverride = false) {
+    if (!dataLayer.isLoggedIn()) {
+        console.error('User not logged in. Use login command to log in first');
+        return;
+    }
+
     const git = simpleGit();
 
-    git.getRemotes(true).then(result => {
+    git.getRemotes(true).then(async (result) => {
         if (result.length === 0) {
             console.error("No remotes found in this repository.");
             return;
         }
 
-        const remoteNames = result.map(r => r.name);
-        if (!remoteNames.includes(remote)) {
-            console.error(`Remote '${remote}' not found. Available remotes: ${remoteNames.join(", ")}`);
+        const remoteIdentifier = getRemoteIdentifier(result, remote);
+
+        if (!remoteIdentifier) {
             return;
         }
 
-        const originUrl = result.find(r => r.name === remote)?.refs.push;
+        console.info(`Fetching remotes for repository for : ${remoteIdentifier}`);
 
-        // Extract org/repo from https or ssh URL of github, gitlab or whatever
-        // https://github.com/Easy-IT-Solution-Ltd/bullsouq-v12-web.git
-        // git@github.com:Easy-IT-Solution-Ltd/bullsouq-v12-web.git
-        if (!originUrl) {
-            console.error(`No push URL found for remote '${remote}'.`);
+        let remotes: Origin[] = [];
+        try {
+            remotes = await dataLayer.getRemoteByOrigin(remoteIdentifier);
+        } catch(error) {
+            console.error('Unable to fetch remotes from registry');
             return;
         }
 
-        let match = null;
+        let updated = false;
 
-        if (originUrl.startsWith("http")) {
-            match = originUrl.match(/https?:\/\/[^\/]+\/([^\/]+\/[^\/]+)\.git?/);
-            if (!match) {
-                console.error(`Could not parse repository from URL: ${originUrl}`);
-            }
-        } else if (originUrl.startsWith("git@")) {
-            match = originUrl.match(/git@[^:]+:([^\/]+\/[^\/]+)\.git?/);
-            if (!match) {
-                console.error(`Could not parse repository from URL: ${originUrl}`);
-            }
-        }
+        remotes.forEach(async (registryRemote) => {
+            if (registryRemote.name == remote) return; // Skip origin sync
 
-        if (match === null || match.length < 2) {
-            console.error(`Unsupported remote URL format: ${originUrl}`);
-            return;
-        }
+            const existingRemote = result.find(r => r.name === registryRemote.name);
 
-        if (match[1] === undefined) {
-            console.error(`Could not extract repository identifier from URL: ${originUrl}`);
-            return;
-        }
-
-        console.info(`Fetching remotes for repository for : ${match[1]}`);
-
-        let remotes = getRemotesByOrigin(match[1]);
-
-        remotes.forEach(r => {
-            git.addRemote(r.name, r.refs.push).then(() => {
-                console.log(`Added remote '${r.name}' with URL: ${r.refs.push}`);
-            }).catch(err => {
-                if (err.message.includes('remote ' + r.name + ' already exists')) {
-                    console.log(`Remote '${r.name}' already exists. Skipping addition.`);
+            if (existingRemote) {
+                if (existingRemote.refs.push == registryRemote.refs.push && existingRemote.refs.fetch == registryRemote.refs.fetch) {
+                    //console.log(`Remote ${remote.name} already exists and up-to-date. Skipping`);
                 } else {
-                    console.error(`Error adding remote '${r.name}': ${err.message}`);
+                    if (!forceOverride) {
+                        console.log(`Registry : ${registryRemote.refs.push}`)
+                        console.log(`Local    : ${existingRemote.refs.push}`)
+                        forceOverride = confirm(`Do you want to overrite local remote : ${existingRemote.name} ?`);
+                    }
+                    
+                    if (forceOverride) {
+                        await git.removeRemote(existingRemote.name);
+                        await git.addRemote(registryRemote.name, registryRemote.refs.push);
+                        console.log(`Remote ${existingRemote.name} overriden and up-to-date with registry`);
+                        updated = true;
+                    } else {
+                        console.log(`Skipping update remote ${existingRemote.name}`);
+                    }
                 }
-            });
+            } else {
+                await git.addRemote(registryRemote.name, registryRemote.refs.push);
+                updated = true;
+            }
         });
-        
 
+        if (!updated) {
+            if (remotesSynced(result, remotes, remote)) {
+                console.log('Everything is up-to-date');
+            } else {
+                // TODO: Some remote remained unsynced
+            }
+        }
     }).catch((err) => {
         console.error(err.message);
     });

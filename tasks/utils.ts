@@ -84,10 +84,10 @@ export function remotesSynced(localRemotes : Origin[], registryRemotes : Origin[
 
     if (!synced) {
         if (registryRemoteExtraNames.length > 0) {
-            console.log(`Registry has : ${registryRemoteExtraNames.join(',')}`);
+            console.log(`Registry has extra : ${registryRemoteExtraNames.join(',')}`);
         }
         if (localRemoteExtraNames.length > 0) {
-            console.log(`Local has    : ${localRemoteExtraNames.join(',')}`);
+            console.log(`Local has extra    : ${localRemoteExtraNames.join(',')}`);
         }
     }
 

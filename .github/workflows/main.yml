@@ -1,0 +1,56 @@
+name: Build Bun Project on Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [bun-linux-x64, bun-windows-x64, bun-darwin-x64] 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.19.3
+
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+
+      - name: Install Dependencies
+        run: |
+          bun install
+
+      - name: Build Project
+        run: |
+          bun build --target=${{ matrix.target }} --compile --minify --sourcemap --bytecode index.ts --outfile dist/${{ matrix.target }}
+
+      - name: Archive build artifacts
+        if: success()
+        run: |
+          mkdir -p artifacts
+          cp -r dist/* artifacts/
+          
+      - name: Upload Artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: bun-build-${{ matrix.target }}
+          path: artifacts/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Upload build to release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "artifacts/*"

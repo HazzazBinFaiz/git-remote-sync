@@ -1,5 +1,16 @@
 # git-remote-sync
 
+Sync git remotes across devices
+
+# todo
+-[ ] implement storage drivers
+    - [x] File backend
+    - [x] Firebase backend
+    - [ ] Bun Single Binary server Backend
+    - [ ] Nodejs Backend
+    - [ ] PHP script backend
+    - [ ] Pocketbase backend
+
 To install dependencies:
 
 ```bash
@@ -13,3 +24,4 @@ bun run index.ts
 ```
 
 This project was created using `bun init` in bun v1.2.21. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+

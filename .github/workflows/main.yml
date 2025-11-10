@@ -50,7 +50,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest 
     steps:
-      - name: Upload build to release
-        uses: ncipollo/release-action@v1
+      - name: Upload build to artifact
+        uses: actions/upload-artifact@v4
         with:
-          artifacts: "artifacts/*"
+          path: "artifacts/*"

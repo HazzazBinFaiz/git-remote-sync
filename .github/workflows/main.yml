@@ -24,11 +24,16 @@ jobs:
           bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote
           bun build --target=bun-windows-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote.exe
           
-      - name: Upload Artifacts
+      - name: Upload Artifact for Linux
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: bun-build-${{ matrix.target }}
-          path: |
-            artifacts/git-remote
-            artifacts/git-remote.exe
+          name: git-remote
+          path: artifacts/git-remote
+            
+      - name: Upload Artifact for Windows
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-remote.exe
+          path: artifacts/git-remote.exe

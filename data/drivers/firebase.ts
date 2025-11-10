@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, setDoc } from 'firebase/firestore/lite';
-import { createUserWithEmailAndPassword, EmailAuthProvider, getAuth, signInWithCredential, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateCurrentUser } from 'firebase/auth';
-import fs from 'node:fs';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type Auth, type Persistence, initializeAuth, getAuth, onAuthStateChanged } from 'firebase/auth';
 import path from 'node:path';
 import os from 'node:os';
 import type { IDataLayer, Origin } from '..';
@@ -16,87 +15,81 @@ const firebaseConfig = {
 };
 
 const userSessionPath = path.join(os.homedir(), '.myapp', 'session.json');
+const authKey = 'auth';
+
+class LocalFilePersistence implements Persistence {
+  storage: any;
+  initiallyLoaded: boolean;
+  type: "NONE";
+  constructor() {
+    this.type = "NONE" /* PersistenceType.NONE */;
+    this.storage = {};
+    this.initiallyLoaded = false;
+  }
+  async _isAvailable() {
+    const file = Bun.file(userSessionPath);
+    if (!await file.exists()) {
+      await Bun.write(userSessionPath, '{}');
+    }
+    return true;
+  }
+  async _set(key: any, value: any) {
+    this.storage[key] = value;
+    const content = await Bun.file(userSessionPath).json();
+    content[authKey] = this.storage;
+    await Bun.write(userSessionPath, JSON.stringify(content));
+  }
+
+  async _get(key: string | number) {
+    if (!this.initiallyLoaded) {
+      this.storage = (await Bun.file(userSessionPath).json())[authKey] ?? {};
+    }
+    const value = this.storage[key];
+    return value === undefined ? null : value;
+  }
+  async _remove(key: string | number) {
+    delete this.storage[key];
+  }
+  _addListener(_key: any, _listener: any) {
+    return;
+  }
+  _removeListener(_key: any, _listener: any) {
+    return;
+  }
+}
+
 
 export class FireBaseDataLayer implements IDataLayer {
   app: any;
   db: any;
-  auth: any;
-  session: any;
-
+  auth: Auth | undefined;
   constructor() {
-
   }
 
-  async init(): Promise<boolean> {
+  init(): Promise<boolean> {
     this.app = initializeApp(firebaseConfig);
     this.db = getFirestore(this.app);
-    this.auth = getAuth(this.app);
-    this.session = this.loadSession();
-    if (this.session && this.session.stsTokenManager?.accessToken) {
-      try {
-        // Re-authenticate the user with the saved ID token
-        const userCredential = await signInWithCredential(
-          this.auth,
-          EmailAuthProvider.credential(this.session.email, this.session.stsTokenManager?.accessToken)
-        );
-
-        console.log('User successfully re-authenticated:', userCredential.user);
-
-        // Optionally, save the user session again to update any changes
-        this.session.uid = userCredential.user.uid;
-        this.saveSession(this.session);
-
-        return true;
-      } catch (error) {
-        console.error('Error re-authenticating with ID token:', error);
-        this.session = null; // Invalidate session if token is invalid
-      }
-    } else {
-      console.log('No session data found or token is invalid');
+    this.auth = initializeAuth(this.app, {
+      persistence: LocalFilePersistence as unknown as Persistence
+    });
+    if (this.auth !== undefined) {
+      return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(this.auth as Auth, user => {
+          unsubscribe();
+          resolve(!!user);
+        }, reject);
+      });
     }
-    return true;
-  }
-
-  private loadSession(): any {
-    try {
-      const sessionDir = path.dirname(userSessionPath);
-      if (!fs.existsSync(sessionDir)) {
-        fs.mkdirSync(sessionDir, { recursive: true });
-      }
-
-      if (fs.existsSync(userSessionPath)) {
-        const data = fs.readFileSync(userSessionPath, 'utf-8');
-        return JSON.parse(data);
-      }
-      return null;
-    } catch (err) {
-      console.error('Error loading session:', err);
-      return null;
-    }
-  }
-
-  private saveSession(sessionData: any): void {
-    try {
-      const sessionDir = path.dirname(userSessionPath);
-      if (!fs.existsSync(sessionDir)) {
-        fs.mkdirSync(sessionDir, { recursive: true });
-      }
-      fs.writeFileSync(userSessionPath, JSON.stringify(sessionData, null, 2));
-    } catch (err) {
-      console.error('Error saving session:', err);
-    }
+    return Promise.resolve(false);
   }
 
   async register(email: string, password: string): Promise<boolean> {
     try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      const user = userCredential.user;
-      this.session = {
-        uid: user.uid,
-        email: user.email,
-        token: await user.getIdToken()
-      };
-      this.saveSession(this.session);
+      if (!this.auth) {
+        console.error('Login error');
+        return false;
+      }
+      await createUserWithEmailAndPassword(this.auth, email, password);
       return true;
     } catch (registerError: any) {
       return false;
@@ -105,10 +98,11 @@ export class FireBaseDataLayer implements IDataLayer {
 
   async login(email: string, password: string): Promise<boolean> {
     try {
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      const user = userCredential.user;
-      this.session = user.toJSON();
-      this.saveSession(this.session);
+      if (!this.auth) {
+        console.error('Login error');
+        return false;
+      }
+      await signInWithEmailAndPassword(this.auth, email, password);
       return true;
     } catch (error: any) {
       return false;
@@ -117,14 +111,16 @@ export class FireBaseDataLayer implements IDataLayer {
   }
 
   isLoggedIn(): boolean {
-    return this.session !== null;
+    return !!this.getCurrentUser();
   }
 
   async logout(): Promise<boolean> {
     try {
+      if (!this.auth) {
+        console.error('Login error');
+        return false;
+      }
       await signOut(this.auth);
-      this.session = null;
-      this.saveSession(this.session);
       return true;
     } catch (error) {
       return false;
@@ -173,6 +169,6 @@ export class FireBaseDataLayer implements IDataLayer {
   }
 
   getCurrentUser(): any {
-    return getAuth(this.app).currentUser;
+    return this.auth?.currentUser;
   }
 }

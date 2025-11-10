@@ -3,7 +3,8 @@
 Sync git remotes across devices
 
 # todo
--[ ] implement storage drivers
+
+- [ ] implement storage drivers
     - [x] File backend
     - [x] Firebase backend
     - [ ] Bun Single Binary server Backend

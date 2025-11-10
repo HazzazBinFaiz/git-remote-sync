@@ -76,7 +76,7 @@ export class FireBaseDataLayer implements IDataLayer {
       return new Promise((resolve, reject) => {
         const unsubscribe = onAuthStateChanged(this.auth as Auth, user => {
           unsubscribe();
-          resolve(!!user);
+          resolve(true);
         }, reject);
       });
     }

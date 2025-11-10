@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [bun-linux-x64, bun-windows-x64, bun-darwin-x64] 
 
     steps:
       - uses: actions/checkout@v3
@@ -24,17 +21,14 @@ jobs:
 
       - name: Build Project
         run: |
-          bun build --target=${{ matrix.target }} --compile --minify --sourcemap --bytecode index.ts --outfile dist/${{ matrix.target }}
-
-      - name: Archive build artifacts
-        if: success()
-        run: |
-          mkdir -p artifacts
-          cp -r dist/* artifacts/
+          bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote
+          bun build --target=bun-windows-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote.exe
           
       - name: Upload Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: bun-build-${{ matrix.target }}
-          path: artifacts/
+          path: |
+            artifacts/git-remote
+            artifacts/git-remote.exe

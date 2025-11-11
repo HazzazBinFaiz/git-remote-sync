@@ -58,7 +58,7 @@ export function getRemoteIdentifier(remotes: RemoteWithRefs[], remote: string) :
         return null;
     }
 
-    return match[1] ;
+    return match[1].toLowerCase() ;
 }
 
 

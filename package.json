@@ -2,6 +2,9 @@
   "name": "git-remote-sync",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

@@ -11,6 +11,14 @@ Sync git remotes across devices
     - [ ] Nodejs Backend
     - [ ] PHP script backend
     - [ ] Pocketbase backend
+- [ ] Command Implementation
+    - [x] register
+    - [x] login
+    - [x] push
+    - [x] pull
+    - [ ] status
+    - [ ] list
+    - [ ] delete
 
 To install dependencies:
 

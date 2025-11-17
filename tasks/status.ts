@@ -112,6 +112,16 @@ export function status(remote: string, dataLayer: IDataLayer) {
             if (remoteHasUnsyncedOnly.length > 0) {
                 console.log(`Registry has unsynced remotes : ${remoteHasUnsynced.join(',')}`);
             }
+
+            console.log("\n");
+
+            if (shouldPull && !shouldPush) {
+                console.log('Run "pull" command to sync local remotes with registry');
+            } else if (!shouldPull && shouldPush) {
+                console.log('Run "push" command to sync registry remotes with local');
+            } else if (shouldPull && shouldPush) {
+                console.log('Run "pull" or "push" commands to sync local and registry remotes');
+            }
         }
         
     }).catch((err) => {

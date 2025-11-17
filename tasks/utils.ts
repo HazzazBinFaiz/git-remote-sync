@@ -62,7 +62,7 @@ export function getRemoteIdentifier(remotes: RemoteWithRefs[], remote: string) :
 }
 
 
-export function remotesSynced(localRemotes : Origin[], registryRemotes : Origin[], remoteName : string) : boolean {
+export function remotesSynced(localRemotes : Origin[], registryRemotes : Origin[], remoteName : string, print = true) : boolean {
     const localRemoteNames = localRemotes.filter(r => r.name != remoteName).map(r => r.name).sort();
     const registryRemoteNames = registryRemotes.filter(r => r.name != remoteName).map(r => r.name).sort();
 
@@ -82,7 +82,7 @@ export function remotesSynced(localRemotes : Origin[], registryRemotes : Origin[
     const registryRemoteExtraNames = registryRemoteNames.filter(r => !localRemoteNames.includes(r));
     const localRemoteExtraNames = localRemoteNames.filter(r => !registryRemoteNames.includes(r));
 
-    if (!synced) {
+    if (!synced && print) {
         if (registryRemoteExtraNames.length > 0) {
             console.log(`Registry has extra : ${registryRemoteExtraNames.join(',')}`);
         }

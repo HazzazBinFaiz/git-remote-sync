@@ -16,7 +16,7 @@ Sync git remotes across devices
     - [x] login
     - [x] push
     - [x] pull
-    - [ ] status
+    - [x] status
     - [ ] list
     - [ ] delete
 

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { login, logout, pull, push, register } from './tasks';
+import { login, logout, pull, push, register, status } from './tasks';
 import { createDataLayer } from './data';
 
 const program = new Command();
@@ -39,8 +39,6 @@ program.command('logout')
     logout(dataLayer);
   });
 
-  
-
 program.command('pull')
   .description('Pull remotes from registry')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
@@ -65,6 +63,18 @@ program.command('push')
       return;
     }
     push(str.remote.toString().replace(/^=?/, ''), dataLayer, !!str.force);
+  });
+
+program.command('status')
+  .description('Show remote and registry synchronization status')
+  .option('-r, --remote [remote]', 'Remote name', 'origin')
+  .action(async (str, options) => {
+    const result = await dataLayer.init();
+    if (!result){
+      console.error('Unable to connect to registry');
+      return;
+    }
+    status(str.remote.toString().replace(/^=?/, ''), dataLayer);
   });
 
 

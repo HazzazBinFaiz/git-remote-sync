@@ -113,7 +113,7 @@ export function status(remote: string, dataLayer: IDataLayer) {
                 console.log(`Registry has unsynced remotes : ${remoteHasUnsynced.join(',')}`);
             }
 
-            console.log("\n");
+            console.log("");
 
             if (shouldPull && !shouldPush) {
                 console.log('Run "pull" command to sync local remotes with registry');

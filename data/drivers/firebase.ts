@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, setDoc } from 'firebase/firestore/lite';
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore/lite';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type Auth, type Persistence, initializeAuth, getAuth, onAuthStateChanged } from 'firebase/auth';
 import path from 'node:path';
 import os from 'node:os';
@@ -128,12 +128,10 @@ export class FireBaseDataLayer implements IDataLayer {
   }
 
   async getRemoteByOrigin(remoteIdentifier: string): Promise<Origin[]> {
+    remoteIdentifier = remoteIdentifier.replace('/', ':');
     const user = this.getCurrentUser();
-    if (!user) {
-      console.log('User not logged in');
-      throw Error('User not logged in');
-    }
-    const remoteRef = collection(this.db, 'remotes', user.uid, 'remotes', remoteIdentifier);
+    const remoteRef = collection(this.db, 'remotes', user.uid, remoteIdentifier);
+    
     const remoteSnapshot = await getDocs(remoteRef);
 
     const originList: Origin[] = remoteSnapshot.docs.map(doc => {
@@ -151,9 +149,28 @@ export class FireBaseDataLayer implements IDataLayer {
   }
 
   async setRemotesByOrigin(remoteIdentifier: string, origins: Origin[]): Promise<boolean> {
+    remoteIdentifier = remoteIdentifier.replace('/', ':');
     try {
       const user = this.getCurrentUser();
-      const remoteCollectionRef = collection(this.db, 'remotes', user.uid, 'remotes', remoteIdentifier);
+
+      const userDocRef = doc(this.db, 'remotes', user.uid);
+      const document = await getDoc(userDocRef);
+      if (document.exists() === false){
+        await setDoc(userDocRef, {
+          list: [remoteIdentifier]
+        }, { merge: true });
+      } else {
+        const data = document.data();
+        const list: string[] = data.list || [];
+        if (!list.includes(remoteIdentifier)) {
+          list.push(remoteIdentifier);
+          await setDoc(userDocRef, {
+            list: list
+          }, { merge: true });
+        }
+      }
+
+      const remoteCollectionRef = collection(this.db, 'remotes', user.uid, remoteIdentifier);
       for (const origin of origins) {
         const remoteDocRef = doc(remoteCollectionRef, origin.name);
         await setDoc(remoteDocRef, {
@@ -170,5 +187,65 @@ export class FireBaseDataLayer implements IDataLayer {
 
   getCurrentUser(): any {
     return this.auth?.currentUser;
+  }
+
+  async listRemotes(): Promise<{ [key: string]: Origin[] }> {
+    const user = this.getCurrentUser();
+    if (!user) {
+      console.log('User not logged in');
+      throw Error('User not logged in');
+    }
+
+    const remotesMap: { [key: string]: Origin[] } = {};
+
+    const documentRef = doc(this.db, 'remotes', user.uid);
+    const snapShot = await getDoc(documentRef);
+
+
+    if(snapShot.exists()){
+      const identifiers = snapShot.data()?.list ?? [];
+      for (const remoteIdentifier of identifiers) {
+        const originList: Origin[] = [];
+        const remoteCollectionRef = collection(this.db, 'remotes', user.uid, remoteIdentifier);
+        const originSnapshot = await getDocs(remoteCollectionRef);
+
+        for (const originDoc of originSnapshot.docs) {
+          const data = originDoc.data();
+          originList.push({
+            name: data.name,
+            refs: {
+              fetch: data.refs?.fetch || "",
+              push: data.refs?.push || ""
+            }
+          });
+        }
+
+        remotesMap[remoteIdentifier.replace(':', '/')] = originList;
+      } 
+    }
+
+    return remotesMap;
+  }
+
+  async deleteRemoteByOrigin(remoteIdentifier: string): Promise<boolean> {
+    try {
+      const user = this.getCurrentUser();
+      if (!user) {
+        console.log('User not logged in');
+        throw Error('User not logged in');
+      }
+      const remoteCollectionRef = collection(this.db, 'remotes', user.uid, 'remotes', remoteIdentifier);
+      const originSnapshot = await getDocs(remoteCollectionRef);
+
+      for (const originDoc of originSnapshot.docs) {
+        const originDocRef = doc(remoteCollectionRef, originDoc.id);
+        await originDocRef.delete();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting remotes:', error);
+      return false;
+    }
   }
 }

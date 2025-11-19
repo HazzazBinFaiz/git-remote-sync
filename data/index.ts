@@ -21,6 +21,8 @@ export interface IDataLayer {
     logout(): Promise<boolean>;
     getRemoteByOrigin(remoteIdentifier: string) : Promise<Origin[]>
     setRemotesByOrigin(remoteIdentifier: string, origins : Origin[]): Promise<boolean>
+    listRemotes() : Promise<{[key: string]: Origin[]}>;
+    deleteRemoteByOrigin(remoteIdentifier: string) : Promise<boolean>;
 }
 
 export function createDataLayer() : IDataLayer

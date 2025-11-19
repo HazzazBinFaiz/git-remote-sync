@@ -46,4 +46,14 @@ export class FileDataLayer implements IDataLayer {
         await Bun.write(FilePath, JSON.stringify(this.remotes));
         return true;
     }
+
+    async listRemotes(): Promise<{[key: string]: Origin[]}> {
+        return this.remotes;
+    }
+
+    async deleteRemoteByOrigin(remoteIdentifier: string): Promise<boolean> {
+        delete this.remotes[remoteIdentifier];
+        await Bun.write(FilePath, JSON.stringify(this.remotes));
+        return true;
+    }
 }

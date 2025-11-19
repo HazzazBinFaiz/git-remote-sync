@@ -17,7 +17,7 @@ Sync git remotes across devices
     - [x] push
     - [x] pull
     - [x] status
-    - [ ] list
+    - [x] list
     - [ ] delete
 
 To install dependencies:

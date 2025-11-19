@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { login, logout, pull, push, register, status } from './tasks';
+import { list, login, logout, pull, push, register, status } from './tasks';
 import { createDataLayer } from './data';
 
 const program = new Command();
@@ -75,6 +75,19 @@ program.command('status')
       return;
     }
     status(str.remote.toString().replace(/^=?/, ''), dataLayer);
+  });
+
+program.command('list')
+  .description('List repository identifiers stored in the registry')
+  .option('-r, --remotes', 'Print remote names too')
+  .option('-u, --urls', 'Print remote names and urls too')
+  .action(async (str, options) => {
+    const result = await dataLayer.init();
+    if (!result){
+      console.error('Unable to connect to registry');
+      return;
+    }
+    list(dataLayer, !!str.remotes, !!str.urls);
   });
 
 

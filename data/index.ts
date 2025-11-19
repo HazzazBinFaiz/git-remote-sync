@@ -79,7 +79,7 @@ export interface IDataLayer {
 
 export function createDataLayer() : IDataLayer
 {
-    // return new FireBaseDataLayer();
+    return new FireBaseDataLayer();
     // return new FileDataLayer();
-    return new PocketbaseDataLayer();
+    // return new PocketbaseDataLayer();
 }

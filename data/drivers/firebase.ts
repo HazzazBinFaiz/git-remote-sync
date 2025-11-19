@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, ty
 import path from 'node:path';
 import os from 'node:os';
 import type { IDataLayer, Origin } from '..';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwRGfNrBW5zvL4Obwo1lhlINkqvjUMgHE",
@@ -27,22 +28,34 @@ class LocalFilePersistence implements Persistence {
     this.initiallyLoaded = false;
   }
   async _isAvailable() {
-    const file = Bun.file(userSessionPath);
-    if (!await file.exists()) {
-      await Bun.write(userSessionPath, '{}');
+    if (!existsSync(userSessionPath)){
+      writeFileSync(userSessionPath, '{}');
     }
     return true;
   }
   async _set(key: any, value: any) {
     this.storage[key] = value;
-    const content = await Bun.file(userSessionPath).json();
+    const fileContent = readFileSync(userSessionPath);
+    let content: any = {};
+    try {
+      content = JSON.parse(fileContent.toString());
+    } catch(e) {
+      content = {};
+    }
     content[authKey] = this.storage;
-    await Bun.write(userSessionPath, JSON.stringify(content));
+    writeFileSync(userSessionPath, JSON.stringify(content));
   }
 
   async _get(key: string | number) {
     if (!this.initiallyLoaded) {
-      this.storage = (await Bun.file(userSessionPath).json())[authKey] ?? {};
+      const fileContent = readFileSync(userSessionPath);
+      let content: any = {};
+      try {
+        content = JSON.parse(fileContent.toString());
+      } catch(e) {
+        content = {};
+      }
+      this.storage = content[authKey] ?? {};
     }
     const value = this.storage[key];
     return value === undefined ? null : value;

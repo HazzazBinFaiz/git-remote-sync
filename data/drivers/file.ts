@@ -1,5 +1,6 @@
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { IDataLayer, Origin } from "..";
 
 const FilePath = resolve(tmpdir(), 'remotes.json');
@@ -9,16 +10,19 @@ export class FileDataLayer implements IDataLayer {
     remotes: any;
     async init(){
         try {
-            const file = Bun.file(FilePath);
-            const result = await file.json();
-            if (result) {
-                this.remotes = result;
+            if (existsSync(FilePath)) {
+                const content = readFileSync(FilePath);
+                try {
+                    this.remotes = JSON.parse(content.toString());
+                } catch(e) {
+                    this.remotes = {};
+                }
             } else {
                 this.remotes = {};
+                writeFileSync(FilePath, JSON.stringify(this.remotes));
             }
             return true;
         } catch(e) {
-            console.error('Unable to connect to server');
             return false;
         }
     }
@@ -43,7 +47,7 @@ export class FileDataLayer implements IDataLayer {
     }
     async setRemotesByOrigin(remoteIdentifier: string, remotes: Origin[]): Promise<boolean> {
         this.remotes[remoteIdentifier] = remotes;
-        await Bun.write(FilePath, JSON.stringify(this.remotes));
+        writeFileSync(FilePath, JSON.stringify(this.remotes));
         return true;
     }
 
@@ -53,7 +57,7 @@ export class FileDataLayer implements IDataLayer {
 
     async deleteRemoteByOrigin(remoteIdentifier: string): Promise<boolean> {
         delete this.remotes[remoteIdentifier];
-        await Bun.write(FilePath, JSON.stringify(this.remotes));
+        writeFileSync(FilePath, JSON.stringify(this.remotes));
         return true;
     }
 }

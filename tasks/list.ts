@@ -9,6 +9,9 @@ export async function list(dataLayer: IDataLayer, printRemoteNames: boolean = fa
     }
 
     let remotes: {[key: string]: Origin[]};
+
+    console.log('Fetching remotes from registry...');
+
     try {
         remotes = await dataLayer.listRemotes();
     } catch(error) {
@@ -27,12 +30,12 @@ export async function list(dataLayer: IDataLayer, printRemoteNames: boolean = fa
     console.log(`Total ${Object.keys(remotes).length} item(s) found in registry:\n`);
 
     for (const [remoteIdentifier, origins] of Object.entries(remotes)) {
-        console.log(`${i.toString().padEnd(digits, " ")}: ${remoteIdentifier}`);
+        console.log(`${i.toString().padEnd(digits, " ")} : ${remoteIdentifier}`);
         if (printRemoteNames || printRemoteUrls) {
             let j = 1;
             const originDigits = origins.length.toString().length;
             for (const origin of origins) {
-                let line = `  - ${j.toString().padEnd(originDigits, " ")}: `;
+                let line = `  - ${j.toString().padEnd(originDigits, " ")} : `;
                 if (printRemoteUrls) {
                     line += `${origin.refs.fetch} (${origin.name})`
                 } else {

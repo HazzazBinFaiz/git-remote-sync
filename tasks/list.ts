@@ -23,6 +23,9 @@ export async function list(dataLayer: IDataLayer, printRemoteNames: boolean = fa
 
     let i = 1;
     const digits = remotes ? Object.keys(remotes).length.toString().length : 1;
+
+    console.log(`Total ${Object.keys(remotes).length} item(s) found in registry:\n`);
+
     for (const [remoteIdentifier, origins] of Object.entries(remotes)) {
         console.log(`${i.toString().padEnd(digits, " ")}: ${remoteIdentifier}`);
         if (printRemoteNames || printRemoteUrls) {

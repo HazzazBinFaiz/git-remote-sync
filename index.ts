@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { list, login, logout, pull, push, register, status } from './tasks';
+import { list, login, logout, pull, push, register, remove, status } from './tasks';
 import { createDataLayer } from './data';
 
 const program = new Command();
@@ -88,6 +88,19 @@ program.command('list')
       return;
     }
     list(dataLayer, !!str.remotes, !!str.urls);
+  });
+
+
+program.command('remove')
+  .description('Remove current repository remotes from registry')
+  .option('-r, --remote [remote]', 'Remote name', 'origin')
+  .action(async (str, options) => {
+    const result = await dataLayer.init();
+    if (!result){
+      console.error('Unable to connect to registry');
+      return;
+    }
+    remove(str.remote.toString().replace(/^=?/, ''), dataLayer);
   });
 
 

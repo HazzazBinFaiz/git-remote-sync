@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore/lite';
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore/lite';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type Auth, type Persistence, initializeAuth, getAuth, onAuthStateChanged } from 'firebase/auth';
 import path from 'node:path';
 import os from 'node:os';
@@ -228,20 +228,35 @@ export class FireBaseDataLayer implements IDataLayer {
   }
 
   async deleteRemoteByOrigin(remoteIdentifier: string): Promise<boolean> {
+    remoteIdentifier = remoteIdentifier.replace('/', ':');
     try {
       const user = this.getCurrentUser();
       if (!user) {
         console.log('User not logged in');
         throw Error('User not logged in');
       }
-      const remoteCollectionRef = collection(this.db, 'remotes', user.uid, 'remotes', remoteIdentifier);
+      const remoteCollectionRef = collection(this.db, 'remotes', user.uid, remoteIdentifier);
       const originSnapshot = await getDocs(remoteCollectionRef);
 
       for (const originDoc of originSnapshot.docs) {
         const originDocRef = doc(remoteCollectionRef, originDoc.id);
-        await originDocRef.delete();
+        await deleteDoc(originDocRef);
       }
+      
+      const userDocRef = doc(this.db, 'remotes', user.uid);
+      const document = await getDoc(userDocRef);
 
+      if (document.exists()){
+        const data = document.data();
+        const list: string[] = data.list || [];
+        const index = list.indexOf(remoteIdentifier);
+        if (index > -1) {
+          list.splice(index, 1);
+          await setDoc(userDocRef, {
+            list: list
+          }, { merge: true });
+        }
+      } 
       return true;
     } catch (error) {
       console.error('Error deleting remotes:', error);

@@ -10,7 +10,7 @@ Sync git remotes across devices
     - [ ] Bun Single Binary server Backend
     - [ ] Nodejs Backend
     - [ ] PHP script backend
-    - [ ] Pocketbase backend
+    - [x] Pocketbase backend
 - [ ] Command Implementation
     - [x] register
     - [x] login
@@ -34,3 +34,5 @@ bun run index.ts
 
 This project was created using `bun init` in bun v1.2.21. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
+## To run using pocketbase
+Import schema using Admin > Setting > Import collections and use pb_schema.json

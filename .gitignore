@@ -35,3 +35,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 remotes.json
 git-remote
 bun-server/database.*
+
+index.js
+index.js.map

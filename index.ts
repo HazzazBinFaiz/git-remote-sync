@@ -43,51 +43,51 @@ program.command('pull')
   .description('Pull remotes from registry')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
   .option('-f, --force', 'Force override local remotes')
-  .action(async (str, options) => {
+  .action(async (options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    pull(str.remote.toString().replace(/^=?/, ''), dataLayer, !!str.force);
+    pull(options.remote.toString().replace(/^=?/, ''), dataLayer, !!options.force);
   });
 
 program.command('push')
   .description('Push remotes to registry')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
   .option('-f, --force', 'Force override registry remotes')
-  .action(async (str, options) => {
+  .action(async (options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    push(str.remote.toString().replace(/^=?/, ''), dataLayer, !!str.force);
+    push(options.remote.toString().replace(/^=?/, ''), dataLayer, !!options.force);
   });
 
 program.command('status')
   .description('Show remote and registry synchronization status')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
-  .action(async (str, options) => {
+  .action(async (options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    status(str.remote.toString().replace(/^=?/, ''), dataLayer);
+    status(options.remote.toString().replace(/^=?/, ''), dataLayer);
   });
 
 program.command('list')
   .description('List repository identifiers stored in the registry')
   .option('-r, --remotes', 'Print remote names too')
   .option('-u, --urls', 'Print remote names and urls too')
-  .action(async (str, options) => {
+  .action(async (options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    list(dataLayer, !!str.remotes, !!str.urls);
+    list(dataLayer, !!options.remotes, !!options.urls);
   });
 
 program.command('search')
@@ -108,13 +108,13 @@ program.command('search')
 program.command('remove')
   .description('Remove current repository remotes from registry')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
-  .action(async (str, options) => {
+  .action(async (options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    remove(str.remote.toString().replace(/^=?/, ''), dataLayer);
+    remove(options.remote.toString().replace(/^=?/, ''), dataLayer);
   });
 
 

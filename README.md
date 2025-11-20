@@ -17,7 +17,19 @@ npx git-remote-sync -h
 or
 
 ```bash
+npx git-remote -h
+```
+
+or
+
+```bash
 git-remote-sync -h
+```
+
+or
+
+```bash
+git-remote -h
 ```
 
 

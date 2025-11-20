@@ -42,7 +42,7 @@ class LocalFilePersistence implements Persistence {
   }
 
   async _get(key: string | number) {
-    return this.storage.get(key.toString());
+    return this.kvStore.get(key.toString());
   }
   async _remove(key: string | number) {
     delete this.storage[key.toString()];

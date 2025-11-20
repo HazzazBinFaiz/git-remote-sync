@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { FireBaseDataLayer } from "./drivers/firebase";
 import { homedir } from "node:os";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { RESTDataLayer } from "./drivers";
 
 const FilePath = join(homedir(), '.git-remote', 'config.json');
@@ -23,6 +23,9 @@ class FileBasedKVStore implements KVStore {
                 this.data = {};
             }
         } else {
+            if (!existsSync(join(homedir(), '.git-remote'))) {
+                mkdirSync(join(homedir(), '.git-remote'), { recursive: true });
+            }
             writeFileSync(FilePath, '{}');
             this.data = {};
         }

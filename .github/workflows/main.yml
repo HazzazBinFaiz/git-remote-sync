@@ -52,9 +52,8 @@ jobs:
       - name: Install Dependencies
         run: bun install
       
-      -name: Build for Publishing
-       run: |
-         bun run build-node && chmod +x index.js
+      - name: Build for Publishing
+        run: bun run build-node && chmod +x index.js
 
       - name: Publish to npm
         env:

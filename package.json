@@ -3,7 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "build": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote"
+    "build": "bun run build-cli && bun run build-server",
+    "build-cli": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote",
+    "build-server": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode bun-server/index.ts --outfile artifacts/git-remote-server",
+    "server": "cd bun-server && bun run index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

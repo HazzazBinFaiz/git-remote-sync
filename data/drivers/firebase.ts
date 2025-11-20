@@ -3,65 +3,50 @@ import { getFirestore, collection, getDocs, doc, setDoc, getDoc, deleteDoc } fro
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type Auth, type Persistence, initializeAuth, getAuth, onAuthStateChanged } from 'firebase/auth';
 import path from 'node:path';
 import os from 'node:os';
-import type { IDataLayer, Origin } from '..';
+import { createKVStore, type IDataLayer, type KVStore, type Origin } from '..';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwRGfNrBW5zvL4Obwo1lhlINkqvjUMgHE",
   authDomain: "crypto-power-token.firebaseapp.com",
   projectId: "crypto-power-token",
-  storageBucket: "crypto-power-token.firebasestorage.app",
-  messagingSenderId: "249868986657",
+  // storageBucket: "crypto-power-token.firebasestorage.app",
+  // messagingSenderId: "249868986657",
   appId: "1:249868986657:web:0acc8cdd47ed734dd63660"
 };
 
 const userSessionPath = path.join(os.homedir(), '.myapp', 'session.json');
-const authKey = 'auth';
+const authKey = 'firebase_auth';
 
 class LocalFilePersistence implements Persistence {
-  storage: any;
-  initiallyLoaded: boolean;
+  storage: {[key : string] : any};
+  kvStore: KVStore;
   type: "NONE";
+  available: boolean = false;
+
   constructor() {
     this.type = "NONE" /* PersistenceType.NONE */;
+    this.kvStore = createKVStore();
     this.storage = {};
-    this.initiallyLoaded = false;
+    this.kvStore.get(authKey).then(data => {
+      this.storage = data || {};
+      this.available = true;
+    });
   }
   async _isAvailable() {
-    if (!existsSync(userSessionPath)){
-      writeFileSync(userSessionPath, '{}');
-    }
-    return true;
+    return this.available;
   }
   async _set(key: any, value: any) {
-    this.storage[key] = value;
-    const fileContent = readFileSync(userSessionPath);
-    let content: any = {};
-    try {
-      content = JSON.parse(fileContent.toString());
-    } catch(e) {
-      content = {};
-    }
-    content[authKey] = this.storage;
-    writeFileSync(userSessionPath, JSON.stringify(content));
+    this.storage[key.toString()] = value;
+    await this.kvStore.set(authKey, this.storage);
   }
 
   async _get(key: string | number) {
-    if (!this.initiallyLoaded) {
-      const fileContent = readFileSync(userSessionPath);
-      let content: any = {};
-      try {
-        content = JSON.parse(fileContent.toString());
-      } catch(e) {
-        content = {};
-      }
-      this.storage = content[authKey] ?? {};
-    }
-    const value = this.storage[key];
-    return value === undefined ? null : value;
+    return this.storage.get(key.toString());
   }
   async _remove(key: string | number) {
-    delete this.storage[key];
+    delete this.storage[key.toString()];
+    await this.kvStore.set(authKey, this.storage);
   }
   _addListener(_key: any, _listener: any) {
     return;
@@ -277,3 +262,6 @@ export class FireBaseDataLayer implements IDataLayer {
     }
   }
 }
+
+
+export default FireBaseDataLayer;

@@ -1,14 +1,10 @@
-// const FilePath = process.cwd()+'/remotes.json';
-
-import { resolve } from "node:path";
-import { FileDataLayer } from "./drivers/file";
+import { join } from "node:path";
 import { FireBaseDataLayer } from "./drivers/firebase";
-import { tmpdir } from "node:os";
-import { write } from "node:console";
+import { homedir } from "node:os";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import PocketbaseDataLayer from "./drivers/pocketbase";
+import { RESTDataLayer } from "./drivers";
 
-const FilePath = resolve(tmpdir(), 'config.json');
+const FilePath = join(homedir(), '.git-remote', 'config.json');
 
 export interface KVStore {
     get(key: string): Promise<any>;
@@ -79,6 +75,7 @@ export interface IDataLayer {
 
 export function createDataLayer() : IDataLayer
 {
+    // return new RESTDataLayer();
     return new FireBaseDataLayer();
     // return new FileDataLayer();
     // return new PocketbaseDataLayer();

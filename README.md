@@ -7,7 +7,7 @@ Sync git remotes across devices
 - [ ] implement storage drivers
     - [x] File backend
     - [x] Firebase backend
-    - [ ] Bun Single Binary server Backend
+    - [x] Bun Single Binary server Backend
     - [ ] Nodejs Backend
     - [ ] PHP script backend
     - [x] Pocketbase backend

@@ -1,6 +1,6 @@
 {
   "name": "git-remote-sync",
-  "version": "1.0.6-alpha",
+  "version": "1.0.8-alpha",
   "module": "index.ts",
   "main": "index.js",
   "bin": {

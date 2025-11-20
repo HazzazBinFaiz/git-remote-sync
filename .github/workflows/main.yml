@@ -20,20 +20,11 @@ jobs:
           bun install
 
       - name: Build Project
-        run: |
-          bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote
-          bun build --target=bun-windows-x64 --compile --minify --sourcemap index.ts --outfile artifacts/git-remote.exe
-          
-      - name: Upload Artifact for Linux
+        run: bun run build-all
+
+      - name: Upload Release Assets
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: AButler/upload-release-assets@v3.0
         with:
-          name: git-remote
-          path: artifacts/git-remote
-            
-      - name: Upload Artifact for Windows
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: git-remote.exe
-          path: artifacts/git-remote.exe
+          files: "artifacts/*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

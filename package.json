@@ -4,8 +4,12 @@
   "type": "module",
   "scripts": {
     "build": "bun run build-cli && bun run build-server",
+    "build-windows": "bun run build-windows-cli && bun run build-windows-server",
+    "build-all": "bun run build && bun run build-windows",
     "build-cli": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote",
     "build-server": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode bun-server/index.ts --outfile artifacts/git-remote-server",
+    "build-windows-cli": "bun build --target=bun-windows-x64 --compile --minify --sourcemap index.ts --outfile artifacts/git-remote.exe",
+    "build-windows-server": "bun build --target=bun-windows-x64 --compile --minify --sourcemap bun-server/index.ts --outfile artifacts/git-remote-server.exe",
     "server": "cd bun-server && bun run index.ts"
   },
   "devDependencies": {

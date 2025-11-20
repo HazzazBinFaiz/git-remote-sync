@@ -2,6 +2,8 @@
   "name": "git-remote-sync",
   "module": "index.ts",
   "type": "module",
+  "description": "CLI application to sync git remotes across devices",
+  
   "scripts": {
     "build": "bun run build-cli && bun run build-server",
     "build-windows": "bun run build-windows-cli && bun run build-windows-server",
@@ -24,5 +26,20 @@
     "inquirer": "^12.11.0",
     "pocketbase": "^0.26.3",
     "simple-git": "^3.30.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HazzazBinFaiz/git-remote-sync.git"
+  },
+  "keywords": [
+    "Git",
+    "Remote",
+    "Sync"
+  ],
+  "author": "Md. Hazzaz Bin Faiz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HazzazBinFaiz/git-remote-sync/issues"
+  },
+  "homepage": "https://github.com/HazzazBinFaiz/git-remote-sync#readme"
 }

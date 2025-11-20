@@ -38,6 +38,7 @@ git-remote-sync -h
     - [x] status
     - [x] list
     - [x] remove
+    - [ ] search 
 
 To install dependencies:
 

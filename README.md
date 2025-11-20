@@ -6,7 +6,7 @@ Sync git remotes across devices
 
 You can use it as npm package
 ```bash
-npm i --global git-remote-sync
+npm i --global git-remote-sync --no-dev
 ```
 
 And invoke via npx of direct

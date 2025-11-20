@@ -2,7 +2,26 @@
 
 Sync git remotes across devices
 
-# todo
+# Usage
+
+You can use it as npm package
+```bash
+npm i --global git-remote-sync
+```
+
+And invoke via npx of direct
+```bash
+npx git-remote-sync -h
+```
+
+or
+
+```bash
+git-remote-sync -h
+```
+
+
+# Development
 
 - [ ] implement storage drivers
     - [x] File backend

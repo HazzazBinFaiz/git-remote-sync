@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { list, login, logout, pull, push, register, remove, status } from './tasks';
+import { list, login, logout, pull, push, register, remove, search, status } from './tasks';
 import { createDataLayer } from './data';
 
 const program = new Command();
@@ -88,6 +88,20 @@ program.command('list')
       return;
     }
     list(dataLayer, !!str.remotes, !!str.urls);
+  });
+
+program.command('search')
+  .description('Search repository identifiers adn urls stored in the registry')
+  .argument('<query>', 'Search query string')
+  .option('-n, --no-url', 'Do not match urls, only identifiers')
+  .option('-o, --only-once', 'Close after first answer')
+  .action(async (query, options) => {
+    const result = await dataLayer.init();
+    if (!result){
+      console.error('Unable to connect to registry');
+      return;
+    }
+    search(dataLayer, query.toString(), !!options.url, !!options.onlyOnce);
   });
 
 

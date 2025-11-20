@@ -21,14 +21,17 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/lunr": "^2.3.7",
     "commander": "^14.0.2",
     "firebase": "^12.5.0",
     "inquirer": "^12.11.0",
+    "lunr": "^2.3.9",
     "pocketbase": "^0.26.3",
     "simple-git": "^3.30.0",
     "typescript": "^5"
   },
-  "dependencies": {},
+  "dependencies": {
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HazzazBinFaiz/git-remote-sync.git"

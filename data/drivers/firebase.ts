@@ -15,7 +15,6 @@ const firebaseConfig = {
   appId: "1:249868986657:web:0acc8cdd47ed734dd63660"
 };
 
-const userSessionPath = path.join(os.homedir(), '.myapp', 'session.json');
 const authKey = 'firebase_auth';
 
 class LocalFilePersistence implements Persistence {
@@ -42,7 +41,7 @@ class LocalFilePersistence implements Persistence {
   }
 
   async _get(key: string | number) {
-    return this.kvStore.get(key.toString());
+    return this.storage[key.toString()];
   }
   async _remove(key: string | number) {
     delete this.storage[key.toString()];

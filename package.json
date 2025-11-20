@@ -1,13 +1,16 @@
 {
   "name": "git-remote-sync",
+  "version": "1.0.0-alpha",
   "module": "index.ts",
+  "main": "index.js",
   "type": "module",
   "description": "CLI application to sync git remotes across devices",
   
   "scripts": {
+    "build-node": "bun build index.ts --outfile=index.js --outdir=./ --target=node --minify index.ts",
+    "build-all": "bun run build && bun run build-windows",
     "build": "bun run build-cli && bun run build-server",
     "build-windows": "bun run build-windows-cli && bun run build-windows-server",
-    "build-all": "bun run build && bun run build-windows",
     "build-cli": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote",
     "build-server": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode bun-server/index.ts --outfile artifacts/git-remote-server",
     "build-windows-cli": "bun build --target=bun-windows-x64 --compile --minify --sourcemap index.ts --outfile artifacts/git-remote.exe",

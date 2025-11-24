@@ -2,15 +2,19 @@ import { createKVStore, type IDataLayer, type KVStore, type Origin } from "..";
 import PocketBase from 'pocketbase';
 
 
-const pocketbaseUrl = "http://127.0.0.1:9090";
+let pocketbaseUrl = "http://127.0.0.1:9090";
 const authKey = 'pocketbase_auth_cookie';
 const repositoryTable = 'repositories';
 
-class PocketbaseDataLayer implements IDataLayer {
+export class PocketbaseDataLayer implements IDataLayer {
+    identifier = "pocketbase";
     app: PocketBase | undefined;
     kvStore: KVStore;
 
-    constructor() {
+    constructor(baseUrl : string|undefined) {
+        if (baseUrl) {
+            pocketbaseUrl = baseUrl.toString().replace(/\/+$/, '');
+        }
         this.kvStore = createKVStore();
     }
     async init(): Promise<boolean> {
@@ -87,7 +91,7 @@ class PocketbaseDataLayer implements IDataLayer {
             return [];
         } 
     }
-    async setRemotesByOrigin(remoteIdentifier: string, origins: Origin[]): Promise<boolean> {
+    async setRemotesByOrigin(remoteIdentifier: string, origins: Origin[], _:string|null): Promise<boolean> {
         if (!this.app){
             return false;
         }
@@ -130,5 +134,3 @@ class PocketbaseDataLayer implements IDataLayer {
     }
 
 }
-
-export default PocketbaseDataLayer;

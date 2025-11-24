@@ -3,11 +3,17 @@ import { resolve } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { IDataLayer, Origin } from "..";
 
-const FilePath = resolve(tmpdir(), 'remotes.json');
+let FilePath = resolve(tmpdir(), 'remotes.json');
 
 
 export class FileDataLayer implements IDataLayer {
+    identifier = "file";
     remotes: any;
+    constructor(filePath : string|undefined){
+        if (filePath) {
+            FilePath = filePath;
+        }
+    }
     async init(){
         try {
             if (existsSync(FilePath)) {
@@ -45,7 +51,7 @@ export class FileDataLayer implements IDataLayer {
         }
         return this.remotes[remoteIdentifier];
     }
-    async setRemotesByOrigin(remoteIdentifier: string, remotes: Origin[]): Promise<boolean> {
+    async setRemotesByOrigin(remoteIdentifier: string, remotes: Origin[], _:string|null): Promise<boolean> {
         this.remotes[remoteIdentifier] = remotes;
         writeFileSync(FilePath, JSON.stringify(this.remotes));
         return true;

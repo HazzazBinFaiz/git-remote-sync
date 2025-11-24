@@ -1,8 +1,7 @@
 import { join } from "node:path";
-import { FireBaseDataLayer } from "./drivers/firebase";
 import { homedir } from "node:os";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { RESTDataLayer } from "./drivers";
+import { FileDataLayer, RESTDataLayer, PocketbaseDataLayer, FireBaseDataLayer } from "./drivers";
 
 const FilePath = join(homedir(), '.git-remote', 'config.json');
 
@@ -65,21 +64,26 @@ export type Origin = {
 }
 
 export interface IDataLayer {
+    identifier: string,
     init(): Promise<boolean>;
     register(email: string, password: string): Promise<boolean>;
     login(email: string, password: string): Promise<boolean>;
     isLoggedIn(): boolean;
     logout(): Promise<boolean>;
     getRemoteByOrigin(remoteIdentifier: string) : Promise<Origin[]>
-    setRemotesByOrigin(remoteIdentifier: string, origins : Origin[]): Promise<boolean>
+    setRemotesByOrigin(remoteIdentifier: string, origins : Origin[], remoteToRemove: string|null): Promise<boolean>
     listRemotes() : Promise<{[key: string]: Origin[]}>;
     deleteRemoteByOrigin(remoteIdentifier: string) : Promise<boolean>;
 }
 
 export function createDataLayer() : IDataLayer
 {
-    // return new RESTDataLayer();
+    if (process.env.GIT_REMOTE_BACKEND?.toString().toLowerCase() == "rest" && process.env.GIT_REMOTE_REST_URL) {
+        return new RESTDataLayer(process.env.GIT_REMOTE_REST_URL);
+    } else if (process.env.GIT_REMOTE_BACKEND?.toString().toLowerCase() == "file") {
+        return new FileDataLayer(process.env.GIT_REMOTE_FILE_PATH)
+    } else if (process.env.GIT_REMOTE_BACKEND?.toString().toLowerCase() == "pocketbase" && process.env.GIT_REMOTE_POCKETBASE_URL) {
+        return new PocketbaseDataLayer(process.env.GIT_REMOTE_POCKETBASE_URL);
+    }
     return new FireBaseDataLayer();
-    // return new FileDataLayer();
-    // return new PocketbaseDataLayer();
 }

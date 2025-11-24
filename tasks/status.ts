@@ -1,6 +1,7 @@
 import simpleGit from "simple-git";
 import { type IDataLayer, type Origin } from "../data";
 import { getRemoteIdentifier, remotesSynced } from "./utils";
+import { keyBy } from "lodash";
 
 export function status(remote: string, dataLayer: IDataLayer) {
     if (!dataLayer.isLoggedIn()) {
@@ -32,98 +33,63 @@ export function status(remote: string, dataLayer: IDataLayer) {
             return;
         }
 
-
         const localRemotesWithoutOrigin = result.filter(r => r.name != remote).sort((a, b) => a.name.localeCompare(b.name));
         const registryRemotesWithoutOrigin = remotes.filter(r => r.name != remote).sort((a, b) => a.name.localeCompare(b.name));
 
-        const localRemoteNames = localRemotesWithoutOrigin.map(r => r.name).sort();
-        const registryRemoteNames = registryRemotesWithoutOrigin.map(r => r.name).sort();
+        const localRemotesWithoutOriginKeyed = keyBy(localRemotesWithoutOrigin, 'name');
+        const registryRemotesWithoutOriginKeyed =  keyBy(registryRemotesWithoutOrigin, 'name');
 
-        if (localRemoteNames.length === 0 && registryRemoteNames.length === 0) {
-            console.log('No remotes found locally or in registry to sync');
+        const allKeys = Array.from(new Set([
+            ...Object.keys(localRemotesWithoutOriginKeyed),
+            ...Object.keys(registryRemotesWithoutOriginKeyed)
+        ])).sort();
+
+        if (allKeys.length === 0) {
+            console.log("No remotes to show status for.");
             return;
         }
 
-        const localHasExtra = localRemoteNames.filter(name => !registryRemoteNames.includes(name));
-        const registryHasExtra = registryRemoteNames.filter(name => !localRemoteNames.includes(name));
 
-        const localHasUnsyncedRemotes = localRemotesWithoutOrigin.filter(local => {
-            const registry = registryRemotesWithoutOrigin.find(r => r.name === local.name);
-            return registry && (registry.refs.push !== local.refs.push || registry.refs.fetch !== local.refs.fetch);
-        });
-        const localHasUnsynced = localHasUnsyncedRemotes.map(r => r.name);
-
-        const remoteHasUnsyncedRemotes = registryRemotesWithoutOrigin.filter(registry => {
-            const local = localRemotesWithoutOrigin.find(r => r.name === registry.name);
-            return local && (registry.refs.push !== local.refs.push || registry.refs.fetch !== local.refs.fetch);
-        });
-        const remoteHasUnsynced = remoteHasUnsyncedRemotes.map(r => r.name);
+        const maxKeyLength = allKeys.reduce((max, key) => Math.max(max, key.length), 0);
         
-        if (
-            remotesSynced(result, remotes, remote, false)
-            && localHasExtra.length === 0
-            && registryHasExtra.length === 0
-            && localHasUnsynced.length === 0
-            && remoteHasUnsynced.length === 0
-        ) {
-            console.log('All remotes are synced with registry');
-            console.log(`Registry has : ${registryRemoteNames.join(',')}`);
-            console.log(`Local has    : ${localRemoteNames.join(',')}`);
-        } else {
-            let shouldPull = false;
-            let shouldPush = false;
+        console.log("Status:");
+        let shouldPull = false;
+        let shouldPush = false; 
 
-            if (localHasExtra.length > 0) {
-                console.log(`Local has extra remotes not in registry : ${localHasExtra.join(',')}`);
-                shouldPush = true;
-                localHasExtra.forEach(name => {
-                    console.log(`    ${name} : ${localRemotesWithoutOrigin.find(r => r.name === name)?.refs.push}`);
-                });
-            }
-            if (registryHasExtra.length > 0) {
-                console.log(`Registry has extra remotes not locally : ${registryHasExtra.join(',')}`);
-                shouldPull = true;
-                registryHasExtra.forEach(name => {
-                    console.log(`    ${name} : ${registryRemotesWithoutOrigin.find(r => r.name === name)?.refs.push}`);
-                });
-            }
+        for (const key of allKeys) {
+            const local = localRemotesWithoutOriginKeyed[key];
+            const registry = registryRemotesWithoutOriginKeyed[key];
 
-            const commonUnsynced = localHasUnsynced.filter(name => remoteHasUnsynced.includes(name));
-            if (commonUnsynced.length > 0) {
-                console.log(`Remotes with diverged URL : ${commonUnsynced.join(',')}`);
+            let str = key.padEnd(maxKeyLength + 4, '-');
+
+            if (local && registry) {
+                if (local.refs.push === registry.refs.push &&
+                    local.refs.fetch === registry.refs.fetch) {
+                    str += ' Synced';
+                } else {
+                    str += ` Diverged. Local : ${local.refs.fetch} <> Registry: ${registry.refs.fetch}`;
+                }
                 shouldPull = true;
                 shouldPush = true;
-                commonUnsynced.forEach(name => {
-                    const local = localRemotesWithoutOrigin.find(r => r.name === name);
-                    const remote = registryRemotesWithoutOrigin.find(r => r.name === name);
-                    console.log(`    ${name} :`);
-                    console.log(`        Local   : ${local?.refs.push}`);
-                    console.log(`        Registry: ${remote?.refs.push}`);
-                });
+            } else if (!local && registry) {
+                str += ' Registry Only'
+                shouldPull = true;
+            } else if (local && !registry) {
+                str += ' Local Only';
+                shouldPush = true;
             }
-
-            const localHasUnsyncedOnly = localHasUnsynced.filter(name => !remoteHasUnsynced.includes(name));
-
-            if (localHasUnsyncedOnly.length > 0) {
-                console.log(`Local has unsynced remotes : ${localHasUnsynced.join(',')}`);
-            }
-
-            const remoteHasUnsyncedOnly = remoteHasUnsynced.filter(name => !localHasUnsynced.includes(name));
-            if (remoteHasUnsyncedOnly.length > 0) {
-                console.log(`Registry has unsynced remotes : ${remoteHasUnsynced.join(',')}`);
-            }
-
-            console.log("");
-
-            if (shouldPull && !shouldPush) {
-                console.log('Run "pull" command to sync local remotes with registry');
-            } else if (!shouldPull && shouldPush) {
-                console.log('Run "push" command to sync registry remotes with local');
-            } else if (shouldPull && shouldPush) {
-                console.log('Run "pull" or "push" commands to sync local and registry remotes');
-            }
+            console.log(str);
+             
         }
-        
+        console.log("");
+
+        if (shouldPull && !shouldPush) {
+            console.log('Run "pull" command to sync local remotes with registry');
+        } else if (!shouldPull && shouldPush) {
+            console.log('Run "push" command to sync registry remotes with local');
+        } else if (shouldPull && shouldPush) {
+            console.log('Run "pull" or "push" commands to sync local and registry remotes');
+        }
     }).catch((err) => {
         console.error(err.message);
     });

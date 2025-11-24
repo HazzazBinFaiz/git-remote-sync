@@ -57,6 +57,7 @@ class LocalFilePersistence implements Persistence {
 
 
 export class FireBaseDataLayer implements IDataLayer {
+  identifier = "firebase";
   app: any;
   db: any;
   auth: Auth | undefined;
@@ -145,7 +146,7 @@ export class FireBaseDataLayer implements IDataLayer {
     return originList;
   }
 
-  async setRemotesByOrigin(remoteIdentifier: string, origins: Origin[]): Promise<boolean> {
+  async setRemotesByOrigin(remoteIdentifier: string, origins: Origin[], remoteToRemove: string|null): Promise<boolean> {
     remoteIdentifier = remoteIdentifier.replace('/', ':');
     try {
       const user = this.getCurrentUser();
@@ -174,6 +175,10 @@ export class FireBaseDataLayer implements IDataLayer {
           name: origin.name,
           refs: origin.refs
         }, { merge: true });
+      }
+      if (remoteToRemove) {
+        const toDelete = doc(remoteCollectionRef, remoteToRemove);
+        await deleteDoc(toDelete);
       }
       return true;
     } catch (error) {
@@ -261,6 +266,3 @@ export class FireBaseDataLayer implements IDataLayer {
     }
   }
 }
-
-
-export default FireBaseDataLayer;

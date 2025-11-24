@@ -2,7 +2,7 @@ import simpleGit from "simple-git";
 import { type IDataLayer, type Origin } from "../data";
 import { getRemoteIdentifier, remotesSynced } from "./utils";
 
-export function remove(remote: string, dataLayer: IDataLayer) {
+export function remove(remote: string, dataLayer: IDataLayer, remoteToRemove?: string) {
     const git = simpleGit();
 
     git.getRemotes(true).then(async (result) => {
@@ -16,20 +16,46 @@ export function remove(remote: string, dataLayer: IDataLayer) {
             return;
         }
 
-        if (confirm(`Are you sure you want to remove all remotes for ${remoteIdentifier} from registry?`)) {
-            console.info(`Removing remotes for repository for : ${remoteIdentifier}`);
-
+        if (remoteToRemove) {
+            let remotes: Origin[] = [];
             try {
-                if (await dataLayer.deleteRemoteByOrigin(remoteIdentifier)) {
-                    console.log('Remove from registry Complete');
-                } else {
-                    console.error('Unable to remove remotes from registry');
+                remotes = await dataLayer.getRemoteByOrigin(remoteIdentifier);
+
+                const registryRemote = remotes.find(r => r.name === remoteToRemove);
+                if (!registryRemote) {
+                    console.error(`Remote ${remoteToRemove} not found in registry for ${remoteIdentifier}`);
+                    return;
                 }
-            } catch (error) {
-                console.error('Unable to remove remotes from registry');
+
+                console.info(`Removing remote ${remoteToRemove} for repository for : ${remoteIdentifier}`);
+
+                const afterDeleteRemotes = remotes.filter(r => r.name != remoteToRemove);
+
+                if (await dataLayer.setRemotesByOrigin(remoteIdentifier, afterDeleteRemotes, remoteToRemove)) {
+                    console.log(`Remote ${remoteToRemove} removed from registry`);
+                } else {
+                    console.error('Unable to remove remote from registry');
+                }
+            } catch(error) {
+                console.error('Unable to fetch remotes from registry');
+                return;
             }
         } else {
-            console.log('Skipped remove')
+            if (confirm(`Are you sure you want to remove all remotes for ${remoteIdentifier} from registry?`)) {
+                console.info(`Removing remotes for repository for : ${remoteIdentifier}`);
+
+                try {
+                    if (await dataLayer.deleteRemoteByOrigin(remoteIdentifier)) {
+                        console.log('Remove from registry Complete');
+                    } else {
+                        console.error('Unable to remove remotes from registry');
+                    }
+                } catch (error) {
+                    console.error('Unable to remove remotes from registry');
+                }
+            } else {
+                console.log('Skipped remove')
+            }
         }
     }).catch((err) => {
         console.error(err.message);

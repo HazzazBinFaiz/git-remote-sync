@@ -1,14 +1,18 @@
 // ...existing code...
 import { createKVStore, type IDataLayer, type KVStore, type Origin } from "..";
 
-const baseUrl = "http://127.0.0.1:3000";
+let baseUrl = "http://127.0.0.1:3000";
 const authTokenKey = 'rest_auth_token';
 
-class RESTDataLayer implements IDataLayer {
+export class RESTDataLayer implements IDataLayer {
+    identifier = "rest";
     kvStore: KVStore;
     token: string | null = null;
 
-    constructor() {
+    constructor(providedBaseUrl : string|undefined) {
+        if (providedBaseUrl) {
+            baseUrl = providedBaseUrl.toString().replace(/\/+$/, '');
+        }
         this.kvStore = createKVStore();
     }
 
@@ -131,5 +135,3 @@ class RESTDataLayer implements IDataLayer {
         return r.ok;
     }
 }
-
-export default RESTDataLayer;

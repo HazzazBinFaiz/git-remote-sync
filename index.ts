@@ -106,15 +106,16 @@ program.command('search')
 
 
 program.command('remove')
+  .argument('[remote]', 'Remote name to remove (Not entire repository)')
   .description('Remove current repository remotes from registry')
   .option('-r, --remote [remote]', 'Remote name', 'origin')
-  .action(async (options) => {
+  .action(async (remote, options) => {
     const result = await dataLayer.init();
     if (!result){
       console.error('Unable to connect to registry');
       return;
     }
-    remove(options.remote.toString().replace(/^=?/, ''), dataLayer);
+    remove(options.remote.toString().replace(/^=?/, ''), dataLayer, remote);
   });
 
 

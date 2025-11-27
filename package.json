@@ -10,11 +10,12 @@
   "type": "module",
   "description": "CLI application to sync git remotes across devices",
   "scripts": {
-    "build-all": "bun run build && bun run build-windows",
+    "build-all": "bun run build && bun run build-windows && bun run build-cli-arm64",
     "build": "bun run build-cli && bun run build-server",
     "build-windows": "bun run build-windows-cli && bun run build-windows-server",
     "build-node": "bun build index.ts --outfile=index.js --outdir=./ --target=node --minify --sourcemap --banner=\"#!/usr/bin/env node\"",
     "build-cli": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote",
+    "build-cli-arm64": "bun build --target=bun-linux-arm64 --compile --minify --sourcemap --bytecode index.ts --outfile artifacts/git-remote.arm64",
     "build-server": "bun build --target=bun-linux-x64 --compile --minify --sourcemap --bytecode bun-server/index.ts --outfile artifacts/git-remote-server",
     "build-windows-cli": "bun build --target=bun-windows-x64 --compile --minify --sourcemap index.ts --outfile artifacts/git-remote.exe",
     "build-windows-server": "bun build --target=bun-windows-x64 --compile --minify --sourcemap bun-server/index.ts --outfile artifacts/git-remote-server.exe",
